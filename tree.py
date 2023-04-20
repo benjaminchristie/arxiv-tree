@@ -1,14 +1,11 @@
-from types import LambdaType
+from arxiv import Result
 
 
 class Tree:
-    def __init__(self, data: dict, leaves=[]):
+    def __init__(self, paper: Result, leaves=[]):
         assert type(leaves) is list
         self.leaves = leaves
-        self.data = data
-
-    def __getitem__(self, value: str):
-        return self.data[value]
+        self.paper = paper
 
     def get_subtokens(self, token: str, recursion_limit=5) -> set:
         token_results = set([])

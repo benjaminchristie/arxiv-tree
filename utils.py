@@ -33,13 +33,22 @@ def download_paper(paper: arxiv.Result):
 def extract_bib(paper: arxiv.Result):
     _from = f"./arxiv-download-folder/sources/{get_id(paper.entry_id)}.tar.gz"
     _to = f"./arxiv-download-folder/bibs/{get_id(paper.entry_id)}/"
-
     if not os.path.exists(_from):
         download_paper(paper)
     if not os.path.exists(_to):
         os.makedirs(_to)
     file = tarfile.open(_from)
-    file.extract("bibtex.bib", _to)
+    # find bib file
+    output = None
+    for member in file.getmembers():
+        if os.path.splitext(member.path)[1] == "bib":
+            output = member
+            break
+    if output is not None:
+        file.extract(output, _to)
+        os.rename(_to + output, _to + "bibtex.bib")
+    else:
+        open(_to + "bibtex.bib", "a").close()
 
 
 def get_references(paper: arxiv.Result):

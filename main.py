@@ -1,19 +1,18 @@
 from tree import Tree
-import arxiv
 from argparse import ArgumentParser, Namespace
 import os
 import utils
 from utils import get_id
 from urllib.error import HTTPError
+import pickle
 
 
 def _fill_tree(tree: Tree,
                max_level=2, current_level=2):
     if current_level >= max_level:
         return
-    append_references(tree)
     for leaf in tree.leaves:
-        # find paper to fill from
+        append_references(leaf)
         _fill_tree(leaf,
                    max_level=max_level,
                    current_level=current_level + 1)
@@ -28,47 +27,29 @@ def fill_tree(tree: Tree, max_level=2):
 def download_pdfs(tree: Tree):
     path = "./arxiv-download-folder/pdfs/"
     for leaf in tree.leaves:
-        leaf.paper.download_pdf(dirname=path,
+        print("Downloading: ", leaf.paper.title)
+        leaf.paper.download_pdf(dirpath=path,
                                 filename=leaf.paper.title)
         download_pdfs(leaf)
-        return
-
-
-def download_references(paper: arxiv.Result):
-    refs = utils.get_references(paper)
-    for ref in refs:
-        title = ref["title"]
-        res = next(utils.query_title(title).results())
-        try:
-            utils.download_paper(res)
-        except HTTPError:
-            refs.remove(ref)
-            continue
-        utils.extract_bib(res)
 
 
 def append_references(tree: Tree):
-    path = f"./arxiv-download-folder/sources/{get_id(tree.paper.entry_id)}.tar.gz"
-    if not os.path.exists(path):
-        utils.download_paper(tree.paper)  # shouldn't need exception handling
-
     refs = utils.get_references(tree.paper)
     for ref in refs:
         title = ref["title"]
-        print(title)
+        print("Appending: ", title)
         try:
             res = next(utils.query_title(title).results())
+            if not os.path.exists(f"./arxiv-download-folder/sources/{get_id(res.entry_id)}.tar.gz"):
+                utils.download_paper(res)
         except StopIteration:
-            # res not found on arxiv! nothing we can do about that
             refs.remove(ref)
             continue
-        try:
-            utils.download_paper(res)
         except HTTPError:
-            # catch and move on
             refs.remove(ref)
             continue
         tree.leaves.append(Tree(res))
+        utils.extract_bib(res)
 
 
 def main(args: Namespace):
@@ -83,6 +64,8 @@ def main(args: Namespace):
     paper_tree = Tree(paper)
     append_references(paper_tree)
     fill_tree(paper_tree, max_level=limit)
+    pickle.dump(paper_tree, open("tree.pkl", "wb"))
+    download_pdfs(paper_tree)
     return
 
 

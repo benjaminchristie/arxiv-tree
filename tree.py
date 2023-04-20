@@ -2,9 +2,8 @@ from arxiv import Result
 
 
 class Tree:
-    def __init__(self, paper: Result, leaves=[]):
-        assert type(leaves) is list
-        self.leaves = leaves
+    def __init__(self, paper: Result):
+        self.leaves = []
         self.paper = paper
 
     def get_subtokens(self, token: str, recursion_limit=5) -> set:

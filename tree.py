@@ -1,10 +1,14 @@
 from arxiv import Result
+from functools import reduce
 
 
 class Tree:
     def __init__(self, paper: Result):
         self.leaves = []
         self.paper = paper
+
+    def __getitem__(self, val):
+        return reduce(getattr, val, self.paper)
 
     def get_subtokens(self, token: str, recursion_limit=5) -> set:
         token_results = set([])

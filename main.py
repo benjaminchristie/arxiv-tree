@@ -1,10 +1,12 @@
 from tree import Tree
+import matplotlib.pyplot as plt
 from argparse import ArgumentParser, Namespace
 import os
 import utils
 from utils import get_id
 from urllib.error import HTTPError
 import pickle
+import graph
 
 
 def _fill_tree(tree: Tree,
@@ -33,11 +35,13 @@ def download_pdfs(tree: Tree):
         download_pdfs(leaf)
 
 
-def append_references(tree: Tree):
+def append_references(tree: Tree, max_level=2, current_level=0):
+    if current_level >= max_level:
+        return
     refs = utils.get_references(tree.paper)
     for ref in refs:
         title = ref["title"]
-        print("Appending: ", title)
+        print(f"{'  ' * current_level}Appending {current_level}: ", title)
         try:
             res = next(utils.query_title(title).results())
             if not os.path.exists(f"./arxiv-download-folder/sources/{get_id(res.entry_id)}.tar.gz"):
@@ -48,8 +52,13 @@ def append_references(tree: Tree):
         except HTTPError:
             refs.remove(ref)
             continue
-        tree.leaves.append(Tree(res))
+        new_tree = Tree(res)
+        tree.leaves.append(new_tree)
         utils.extract_bib(res)
+        for leaf in tree.leaves:
+            append_references(leaf, max_level=max_level,
+                            current_level=current_level + 1)
+    return
 
 
 def main(args: Namespace):
@@ -60,11 +69,20 @@ def main(args: Namespace):
         res = utils.query_title(title, 1)
     elif _id != "":
         res = utils.query_id_list([_id], 1)
-    paper = next(res.results())   # found user paper
-    paper_tree = Tree(paper)
-    append_references(paper_tree)
-    fill_tree(paper_tree, max_level=limit)
-    pickle.dump(paper_tree, open("tree.pkl", "wb"))
+    if not os.path.exists("trees/"):
+        os.makedirs("trees/")
+    if not os.path.exists(f"trees/tree_{title}_{_id}_{limit}.pkl"):
+        paper = next(res.results())   # found user paper
+        paper_tree = Tree(paper)
+        append_references(paper_tree, current_level=0, max_level=limit)
+        fill_tree(paper_tree, max_level=limit)
+        pickle.dump(paper_tree, open(f"trees/tree_{title}_{_id}_{limit}.pkl", "wb"))
+    else:
+        paper_tree = pickle.load(open(f"trees/tree_{title}_{_id}_{limit}.pkl", "rb"))
+    line_width = 48
+    graph.get_tree_plot(paper_tree, line_width)
+    plt.show()
+
     download_pdfs(paper_tree)
     return
 

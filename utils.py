@@ -41,8 +41,8 @@ def extract_bib(paper: arxiv.Result):
     # find bib file
     output = None
     for member in file.getmembers():
-        if os.path.splitext(member.path)[1] == "bib":
-            output = member
+        if os.path.splitext(member.path)[-1] == ".bib":
+            output = member.path
             break
     if output is not None:
         file.extract(output, _to)

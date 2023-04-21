@@ -7,3 +7,7 @@ python main.py --limit 1 --title   8.66s user 0.65s system 14% cpu 1:05.62 total
 
 results for synchronous, singlethread download:
 python main.py --limit 1 --title   6.00s user 0.84s system 1% cpu 5:57.44 total
+
+Results plot:
+
+[Results of 2 depth search of random article](./showcase.png)

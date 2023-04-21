@@ -88,6 +88,8 @@ def main(args: Namespace):
         paper_tree = pickle.load(open(f"trees/tree_{title}_{_id}_{limit}.pkl", "rb"))
     line_width = 48
     graph.get_tree_plot(paper_tree, line_width)
+    if args.show:
+        plt.show()
     plt.savefig("result.png")
     download_pdfs(paper_tree)
     return
@@ -101,5 +103,6 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('--title', help="title of paper to analyze", type=str, default="")
     parser.add_argument('--id', help="id of paper to analyze", type=str, default="")
+    parser.add_argument('--show', help="flag to show results plot", action="store_true")
     parser.add_argument('--limit', help="limit of height of search tree", type=int, default=2)
     main(parser.parse_args())

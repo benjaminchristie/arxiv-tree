@@ -4,7 +4,6 @@ from argparse import ArgumentParser, Namespace
 import os
 import utils
 from utils import get_id
-from urllib.error import HTTPError
 import pickle
 import graph
 # import threading
@@ -30,10 +29,11 @@ def fill_tree(tree: Tree, max_level=2):
 
 def download_pdfs(tree: Tree):
     path = "./arxiv-download-folder/pdfs/"
+    with ThreadPoolExecutor() as pool:
+        for leaf in tree.leaves:
+            print("Downloading: ", leaf.paper.title)
+            pool.submit(leaf.paper.download_pdf, dirpath=path, filename=leaf.paper.title)
     for leaf in tree.leaves:
-        print("Downloading: ", leaf.paper.title)
-        leaf.paper.download_pdf(dirpath=path,
-                                filename=leaf.paper.title)
         download_pdfs(leaf)
 
 

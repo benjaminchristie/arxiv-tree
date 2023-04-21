@@ -10,4 +10,4 @@ python main.py --limit 1 --title   6.00s user 0.84s system 1% cpu 5:57.44 total
 
 Results plot:
 
-[Results of 2 depth search of random article](./showcase.png)
+![Results of 2 depth search of random article](./showcase.png)

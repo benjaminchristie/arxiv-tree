@@ -7,6 +7,8 @@ from utils import get_id
 from urllib.error import HTTPError
 import pickle
 import graph
+# import threading
+from concurrent.futures import ThreadPoolExecutor
 
 
 def _fill_tree(tree: Tree,
@@ -39,25 +41,32 @@ def append_references(tree: Tree, max_level=2, current_level=0):
     if current_level >= max_level:
         return
     refs = utils.get_references(tree.paper)
-    for ref in refs:
-        title = ref["title"]
-        print(f"{'  ' * current_level}Appending {current_level}: ", title)
-        try:
-            res = next(utils.query_title(title).results())
+    all_res = []
+    with ThreadPoolExecutor() as pool:
+        for ref in refs:
+            title = ref["title"]
+            print(f"{'  ' * current_level}Appending {current_level}: ", title)
+            res = next(utils.query_title(title).results(), None)
+            if res is None:
+                break
+            all_res.append(res)
+            success = True  # probably os exists
             if not os.path.exists(f"./arxiv-download-folder/sources/{get_id(res.entry_id)}.tar.gz"):
-                utils.download_paper(res)
-        except StopIteration:
-            refs.remove(ref)
-            continue
-        except HTTPError:
-            refs.remove(ref)
-            continue
-        new_tree = Tree(res)
-        tree.leaves.append(new_tree)
+                success = pool.submit(utils.download_paper, res)
+            if not success:
+                refs.remove(ref)
+                if res in all_res:
+                    all_res.remove(res)
+                continue
+            new_tree = Tree(res)
+            tree.leaves.append(new_tree)
+    # wait to extract bibs until download finished
+    for res in all_res:
+        print("extracting...")
         utils.extract_bib(res)
-        for leaf in tree.leaves:
-            append_references(leaf, max_level=max_level,
-                            current_level=current_level + 1)
+    for leaf in tree.leaves:
+        append_references(leaf, max_level=max_level,
+                        current_level=current_level + 1)
     return
 
 
@@ -74,6 +83,7 @@ def main(args: Namespace):
     if not os.path.exists(f"trees/tree_{title}_{_id}_{limit}.pkl"):
         paper = next(res.results())   # found user paper
         paper_tree = Tree(paper)
+        # pool = ThreadPoolExecutor(max_workers=None)  # uses smart defaults
         append_references(paper_tree, current_level=0, max_level=limit)
         fill_tree(paper_tree, max_level=limit)
         pickle.dump(paper_tree, open(f"trees/tree_{title}_{_id}_{limit}.pkl", "wb"))

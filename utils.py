@@ -56,5 +56,8 @@ def get_references(paper: arxiv.Result):
     if not os.path.exists(bibpath):
         extract_bib(paper)
     with open(bibpath) as file:
-        bib_database = bibtexparser.load(file)
+        try:
+            bib_database = bibtexparser.load(file)
+        except bibtexparser.bibdatabase.UndefinedString:  # KeyError
+            return []
     return bib_database.entries

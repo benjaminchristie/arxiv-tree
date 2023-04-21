@@ -4,11 +4,8 @@ from argparse import ArgumentParser, Namespace
 import os
 import utils
 from utils import get_id
-from urllib.error import HTTPError
 import pickle
 import graph
-# import threading
-from concurrent.futures import ThreadPoolExecutor
 
 
 def _fill_tree(tree: Tree,
@@ -42,25 +39,23 @@ def append_references(tree: Tree, max_level=2, current_level=0):
         return
     refs = utils.get_references(tree.paper)
     all_res = []
-    with ThreadPoolExecutor() as pool:
-        for ref in refs:
-            title = ref["title"]
-            print(f"{'  ' * current_level}Appending {current_level}: ", title)
-            res = next(utils.query_title(title).results(), None)
-            if res is None:
-                break
-            all_res.append(res)
-            success = True  # probably os exists
-            if not os.path.exists(f"./arxiv-download-folder/sources/{get_id(res.entry_id)}.tar.gz"):
-                success = pool.submit(utils.download_paper, res)
-            if not success:
-                refs.remove(ref)
-                if res in all_res:
-                    all_res.remove(res)
-                continue
-            new_tree = Tree(res)
-            tree.leaves.append(new_tree)
-    # wait to extract bibs until download finished
+    for ref in refs:
+        title = ref["title"]
+        print(f"{'  ' * current_level}Appending {current_level}: ", title)
+        res = next(utils.query_title(title).results(), None)
+        if res is None:
+            break
+        all_res.append(res)
+        success = True  # probably os exists
+        if not os.path.exists(f"./arxiv-download-folder/sources/{get_id(res.entry_id)}.tar.gz"):
+            success = utils.download_paper(res)
+        if not success:
+            refs.remove(ref)
+            if res in all_res:
+                all_res.remove(res)
+            continue
+        new_tree = Tree(res)
+        tree.leaves.append(new_tree)
     for res in all_res:
         print("extracting...")
         utils.extract_bib(res)

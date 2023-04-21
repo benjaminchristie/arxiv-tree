@@ -9,11 +9,11 @@ import graph
 
 
 def _fill_tree(tree: Tree,
-               max_level=2, current_level=2):
+               max_level=2, current_level=0):
     if current_level >= max_level:
         return
     for leaf in tree.leaves:
-        append_references(leaf)
+        append_references(leaf, max_level=max_level, current_level=current_level)
         _fill_tree(leaf,
                    max_level=max_level,
                    current_level=current_level + 1)
@@ -46,14 +46,8 @@ def append_references(tree: Tree, max_level=2, current_level=0):
         if res is None:
             break
         all_res.append(res)
-        success = True  # probably os exists
         if not os.path.exists(f"./arxiv-download-folder/sources/{get_id(res.entry_id)}.tar.gz"):
-            success = utils.download_paper(res)
-        if not success:
-            refs.remove(ref)
-            if res in all_res:
-                all_res.remove(res)
-            continue
+            utils.download_paper(res)
         new_tree = Tree(res)
         tree.leaves.append(new_tree)
     for res in all_res:
@@ -62,7 +56,6 @@ def append_references(tree: Tree, max_level=2, current_level=0):
     for leaf in tree.leaves:
         append_references(leaf, max_level=max_level,
                         current_level=current_level + 1)
-    return
 
 
 def main(args: Namespace):
@@ -86,7 +79,7 @@ def main(args: Namespace):
         paper_tree = pickle.load(open(f"trees/tree_{title}_{_id}_{limit}.pkl", "rb"))
     line_width = 48
     graph.get_tree_plot(paper_tree, line_width)
-    plt.show()
+    plt.savefig("results.png")
 
     download_pdfs(paper_tree)
     return

@@ -6,16 +6,15 @@ import utils
 from utils import get_id
 import pickle
 import graph
-# import threading
 from concurrent.futures import ThreadPoolExecutor
 
 
 def _fill_tree(tree: Tree,
-               max_level=2, current_level=2):
+               max_level=2, current_level=0):
     if current_level >= max_level:
         return
     for leaf in tree.leaves:
-        append_references(leaf)
+        append_references(leaf, max_level, current_level)
         _fill_tree(leaf,
                    max_level=max_level,
                    current_level=current_level + 1)
@@ -37,7 +36,7 @@ def download_pdfs(tree: Tree):
         download_pdfs(leaf)
 
 
-def append_references(tree: Tree, max_level=2, current_level=0):
+def append_references(tree: Tree, max_level, current_level):
     if current_level >= max_level:
         return
     refs = utils.get_references(tree.paper)
@@ -62,11 +61,10 @@ def append_references(tree: Tree, max_level=2, current_level=0):
             tree.leaves.append(new_tree)
     # wait to extract bibs until download finished
     for res in all_res:
-        print("extracting...")
         utils.extract_bib(res)
     for leaf in tree.leaves:
-        append_references(leaf, max_level=max_level,
-                        current_level=current_level + 1)
+        append_references(leaf, max_level,
+                        current_level + 1)
     return
 
 
@@ -83,16 +81,14 @@ def main(args: Namespace):
     if not os.path.exists(f"trees/tree_{title}_{_id}_{limit}.pkl"):
         paper = next(res.results())   # found user paper
         paper_tree = Tree(paper)
-        # pool = ThreadPoolExecutor(max_workers=None)  # uses smart defaults
-        append_references(paper_tree, current_level=0, max_level=limit)
+        append_references(paper_tree, limit, 0)
         fill_tree(paper_tree, max_level=limit)
         pickle.dump(paper_tree, open(f"trees/tree_{title}_{_id}_{limit}.pkl", "wb"))
     else:
         paper_tree = pickle.load(open(f"trees/tree_{title}_{_id}_{limit}.pkl", "rb"))
     line_width = 48
     graph.get_tree_plot(paper_tree, line_width)
-    plt.show()
-
+    plt.savefig("result.png")
     download_pdfs(paper_tree)
     return
 

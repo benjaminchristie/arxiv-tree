@@ -76,9 +76,13 @@ def main(args: Namespace):
         res = utils.query_title(title, 1)
     elif _id != "":
         res = utils.query_id_list([_id], 1)
+    else:
+        res = None
     if not os.path.exists("trees/"):
         os.makedirs("trees/")
     if not os.path.exists(f"trees/tree_{title}_{_id}_{limit}.pkl"):
+        if res is None:
+            raise FileNotFoundError("No result found!")
         paper = next(res.results())   # found user paper
         paper_tree = Tree(paper)
         append_references(paper_tree, limit, 0)

@@ -1,3 +1,2 @@
 arxiv
 bibtexparser
-tarfile

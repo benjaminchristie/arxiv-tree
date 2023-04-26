@@ -31,7 +31,7 @@ def download_pdfs(tree: Tree):
     with ThreadPoolExecutor() as pool:
         for leaf in tree.leaves:
             print("Downloading: ", leaf.paper.title)
-            pool.submit(leaf.paper.download_pdf, dirpath=path, filename=leaf.paper.title)
+            pool.submit(leaf.paper.download_pdf, dirpath=path, filename=leaf.paper.title + ".pdf")
     for leaf in tree.leaves:
         download_pdfs(leaf)
 

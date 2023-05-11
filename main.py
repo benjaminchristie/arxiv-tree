@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 def _fill_tree(tree: Tree,
-               max_level=2, current_level=0):
+               max_level=2, current_level=0) -> None:
     if current_level >= max_level:
         return
     for leaf in tree.leaves:
@@ -22,11 +22,11 @@ def _fill_tree(tree: Tree,
 
 
 # may be removed
-def fill_tree(tree: Tree, max_level=2):
+def fill_tree(tree: Tree, max_level=2) -> None:
     _fill_tree(tree, max_level=max_level, current_level=0)
 
 
-def download_pdfs(tree: Tree):
+def download_pdfs(tree: Tree) -> None:
     path = "./arxiv-download-folder/pdfs/"
     with ThreadPoolExecutor() as pool:
         for leaf in tree.leaves:
@@ -36,7 +36,7 @@ def download_pdfs(tree: Tree):
         download_pdfs(leaf)
 
 
-def append_references(tree: Tree, max_level, current_level):
+def append_references(tree: Tree, max_level: int, current_level: int) -> None:
     if current_level >= max_level:
         return
     refs = utils.get_references(tree.paper)
@@ -68,7 +68,7 @@ def append_references(tree: Tree, max_level, current_level):
     return
 
 
-def main(args: Namespace):
+def main(args: Namespace) -> None:
     title = args.title
     _id = args.id
     limit = args.limit

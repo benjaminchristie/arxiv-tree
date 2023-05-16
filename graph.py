@@ -26,7 +26,7 @@ def get_tree_plot(tree: Tree, line_width: int):
     fig, ax = plt.subplots()
     pos = nx.spring_layout(G)
     node_colors = ["red"] + ["blue" for _ in range(1, len(pos))]
-    nodes = nx.draw_networkx_nodes(G, pos=pos, ax=ax, node_color="blue")
+    nodes = nx.draw_networkx_nodes(G, pos=pos, ax=ax, node_color=node_colors)
     # nodes = nx.draw_networkx_nodes(G, pos=pos, ax=ax, node_color=node_colors)
     nx.draw_networkx_edges(G, pos=pos, ax=ax)
     annot = ax.annotate("", xy=(0, 0), textcoords="offset points",

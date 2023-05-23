@@ -43,7 +43,10 @@ def append_references(tree: Tree, max_level: int, current_level: int) -> None:
     all_res = []
     with ThreadPoolExecutor() as pool:
         for ref in refs:
-            title = ref["title"]
+            try:
+                title = ref["title"]
+            except KeyError:
+                break
             print(f"{'  ' * current_level}Appending {current_level}: ", title)
             res = next(utils.query_title(title).results(), None)
             if res is None:

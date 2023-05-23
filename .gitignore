@@ -2,4 +2,5 @@
 **/arxiv-download-folder/**
 **/*.bak
 **/trees
-**/results*
+**/result*
+./README.md.pdf

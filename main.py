@@ -9,21 +9,16 @@ import graph
 from concurrent.futures import ThreadPoolExecutor
 
 
-def _fill_tree(tree: Tree,
-               max_level=2, current_level=0) -> None:
+def fill_tree(tree: Tree,
+              max_level=2, current_level=0) -> None:
     if current_level >= max_level:
         return
     for leaf in tree.leaves:
         append_references(leaf, max_level, current_level)
-        _fill_tree(leaf,
-                   max_level=max_level,
-                   current_level=current_level + 1)
+        fill_tree(leaf,
+                  max_level=max_level,
+                  current_level=current_level + 1)
     return
-
-
-# may be removed
-def fill_tree(tree: Tree, max_level=2) -> None:
-    _fill_tree(tree, max_level=max_level, current_level=0)
 
 
 def download_pdfs(tree: Tree) -> None:

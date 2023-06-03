@@ -17,12 +17,14 @@ class Tree(object):
         _id = self.paper.entry_id.split('/')[-1]
         return f"{self.paper.title} - {_id}"
 
+    # unused as of 21 May 23
     def get_subtokens(self, token: str, recursion_limit=5) -> set:
         token_results = set([])
         self._get_subtokens(self, token, token_results, recursion_limit=recursion_limit)
         return token_results
 
     # warning: may throw infinite recursion, but probably not
+    # unused as of 21 May 23
     def _get_subtokens(self, tree, token: str, token_results: set,
                        recursion_limit=0, current_level=0) -> None:
         if tree[token] in token_results:
